@@ -1,9 +1,23 @@
 package test.kotlin.https
 
-import java.net.ServerSocket
+import java.security.KeyStore
+import java.security.SecureRandom
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
 
 fun main() {
-    ServerSocket(8080).use { ss ->
+    val password = "qwe123".toCharArray()
+    val ks = KeyStore.getInstance("pkcs12")
+    Thread.currentThread()
+        .contextClassLoader
+        .getResourceAsStream("ca.pkcs12")!!.use { src ->
+            ks.load(src, password)
+        }
+    val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+    kmf.init(ks, password)
+    val sc = SSLContext.getInstance("tls")
+    sc.init(kmf.keyManagers, null, SecureRandom.getInstanceStrong())
+    sc.serverSocketFactory.createServerSocket(8080)!!.use { ss ->
         println("start server ${ss.inetAddress.hostAddress}:${ss.localPort}")
         val version = "1.1"
         while (true) {
