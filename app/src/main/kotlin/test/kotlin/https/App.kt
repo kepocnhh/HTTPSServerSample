@@ -20,7 +20,7 @@ fun main() {
     sc.init(kmf.keyManagers, null, SecureRandom.getInstanceStrong())
     sc.serverSocketFactory.createServerSocket(8080)!!.use { ss ->
         check(ss is SSLServerSocket)
-//        ss.needClientAuth = true
+        ss.needClientAuth = true
         ss.enabledCipherSuites = arrayOf("TLS_AES_128_GCM_SHA256")
         ss.enabledProtocols = arrayOf("TLSv1.3")
         println("start server ${ss.inetAddress.hostAddress}:${ss.localPort}")
