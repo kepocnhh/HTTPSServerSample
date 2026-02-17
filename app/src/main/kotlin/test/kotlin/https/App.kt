@@ -4,6 +4,7 @@ import java.security.KeyStore
 import java.security.SecureRandom
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLServerSocket
 
 fun main() {
     val password = "qwe123".toCharArray()
@@ -18,6 +19,10 @@ fun main() {
     val sc = SSLContext.getInstance("tls")
     sc.init(kmf.keyManagers, null, SecureRandom.getInstanceStrong())
     sc.serverSocketFactory.createServerSocket(8080)!!.use { ss ->
+        check(ss is SSLServerSocket)
+        ss.needClientAuth = true
+        ss.enabledCipherSuites = arrayOf("TLS_AES_128_GCM_SHA256")
+        ss.enabledProtocols = arrayOf("TLSv1.3")
         println("start server ${ss.inetAddress.hostAddress}:${ss.localPort}")
         val version = "1.1"
         while (true) {
