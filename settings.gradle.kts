@@ -1,3 +1,3 @@
 rootProject.name = "HTTPSServerSample"
 
-include("app")
+include("app", "client")
