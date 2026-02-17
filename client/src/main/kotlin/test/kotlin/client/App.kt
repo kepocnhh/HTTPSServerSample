@@ -34,7 +34,7 @@ fun main() {
         as X509Certificate
     val key = ks.getKey(issuer, password) as PrivateKey
     val crt = ks.getCertificate(issuer) as X509Certificate
-    crt.verify(caCrt.publicKey)
+//    crt.verify(caCrt.publicKey)
     val trustManager = object : X509TrustManager {
         override fun checkClientTrusted(
             chain: Array<out X509Certificate?>?,
@@ -59,9 +59,9 @@ fun main() {
     val hostname = "0.0.0.0"
     val hv = HostnameVerifier { actual, _ -> hostname == actual }
     val client = OkHttpClient.Builder()
-        .callTimeout(5.seconds)
-        .readTimeout(2.seconds)
-        .writeTimeout(2.seconds)
+        .callTimeout(8.seconds)
+        .readTimeout(4.seconds)
+        .writeTimeout(4.seconds)
         .sslSocketFactory(sc.socketFactory, trustManager)
         .hostnameVerifier(hv)
         .build()

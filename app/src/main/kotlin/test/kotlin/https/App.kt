@@ -2,9 +2,11 @@ package test.kotlin.https
 
 import java.security.KeyStore
 import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocket
+import javax.net.ssl.X509TrustManager
 
 fun main() {
     val password = "qwe123".toCharArray()
@@ -14,10 +16,30 @@ fun main() {
         .getResourceAsStream("ca.pkcs12")!!.use { src ->
             ks.load(src, password)
         }
+    val caCrt = ks.getCertificate("cauthority") as X509Certificate
     val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
     kmf.init(ks, password)
     val sc = SSLContext.getInstance("tls")
-    sc.init(kmf.keyManagers, null, SecureRandom.getInstanceStrong())
+    val trustManager = object : X509TrustManager {
+        override fun checkClientTrusted(
+            chain: Array<out X509Certificate?>?,
+            authType: String?,
+        ) {
+            println("client($authType): ${chain?.map { it?.issuerX500Principal }}")
+        }
+
+        override fun checkServerTrusted(
+            chain: Array<out X509Certificate?>?,
+            authType: String?,
+        ) {
+            println("server($authType): ${chain?.map { it?.issuerX500Principal }}")
+        }
+
+        override fun getAcceptedIssuers(): Array<out X509Certificate?> {
+            return arrayOf(caCrt)
+        }
+    }
+    sc.init(kmf.keyManagers, arrayOf(trustManager), SecureRandom.getInstanceStrong())
     sc.serverSocketFactory.createServerSocket(8080)!!.use { ss ->
         check(ss is SSLServerSocket)
         ss.needClientAuth = true
