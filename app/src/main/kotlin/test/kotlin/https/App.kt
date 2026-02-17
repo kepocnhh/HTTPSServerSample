@@ -25,20 +25,21 @@ fun main() {
             chain: Array<out X509Certificate?>?,
             authType: String?,
         ) {
-            println("client($authType): ${chain?.map { it?.issuerX500Principal }}")
+            chain!!.single()!!.verify(caCrt.publicKey)
         }
 
         override fun checkServerTrusted(
             chain: Array<out X509Certificate?>?,
             authType: String?,
         ) {
-            println("server($authType): ${chain?.map { it?.issuerX500Principal }}")
+            // noop
         }
 
         override fun getAcceptedIssuers(): Array<out X509Certificate?> {
-            return arrayOf(caCrt)
+            return arrayOf()
         }
     }
+//    sc.init(kmf.keyManagers, null, SecureRandom.getInstanceStrong())
     sc.init(kmf.keyManagers, arrayOf(trustManager), SecureRandom.getInstanceStrong())
     sc.serverSocketFactory.createServerSocket(8080)!!.use { ss ->
         check(ss is SSLServerSocket)
